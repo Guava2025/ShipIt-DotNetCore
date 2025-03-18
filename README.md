@@ -1,9 +1,22 @@
 # ShipIt Inventory Management
 
 ## Setup Instructions
+Update the DotNetEnv, log4net, Npgsql packages in `.csproj ` by running:
+
+```
+dotnet add package <packagename> --version
+```
+
+## Setting up the shipit database
+1. In pgAdmin, set up postgres login password 
+2. Start up psql as postgres with command: `psql -U postgres`
+3. Run `CREATE DATABASE shipit;`
+4. `\q` to exit the shell
+5. Run `$ psql -U postgres -d shipit -f "C:Path\To\DatabaseDumpFile"`
+
+## Setup Instructions
 Open the project in VSCode.
 VSCode should automatically set up and install everything you'll need apart from the database connection!
-
 ### Setting up the Database.
 Create 2 new postgres databases - one for the main program and one for our test database.
 Ask a team member for a dump of the production databases to create and populate your tables.

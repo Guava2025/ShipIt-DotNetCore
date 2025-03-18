@@ -1,4 +1,5 @@
-﻿using System.Configuration;
+﻿using System;
+using System.Configuration;
 
 namespace ShipIt.Repositories
 {
@@ -9,7 +10,7 @@ namespace ShipIt.Repositories
             var dbname = ConfigurationManager.AppSettings["RDS_DB_NAME"];
 
             if (dbname == null)
-            {
+            {   
                 return System.Environment.GetEnvironmentVariable("POSTGRES_CONNECTION_STRING");
             };
 
