@@ -37,12 +37,14 @@ namespace ShipIt.Controllers
                 gtins.Add(orderLine.gtin);
             }
 
-            var productDataModels = _productRepository.GetProductsByGtin(gtins);
+            var productDataModels = _productRepository.GetProductsByGtin(gtins); //get products from the productrepo, where gtins match those in OrderLine
             var products = productDataModels.ToDictionary(p => p.Gtin, p => new Product(p));
+
 
             var lineItems = new List<StockAlteration>();
             var productIds = new List<int>();
             var errors = new List<string>();
+            float orderweight =0;
 
             foreach (var orderLine in request.OrderLines)
             {       //need modifcations - checks incorrect. Should this check DB or throw different error? 
@@ -55,6 +57,7 @@ namespace ShipIt.Controllers
                     var product = products[orderLine.gtin]; //comes from request.OrderLine
                     lineItems.Add(new StockAlteration(product.Id, orderLine.quantity)); //comes from request.OrderLine
                     productIds.Add(product.Id);
+                    orderweight += orderLine.quantity*product.Weight;
                 }
             }
 
@@ -94,6 +97,7 @@ namespace ShipIt.Controllers
                 // outputs errors
             }
 
+               
             //weight of goods
             //total trucks needed
             //create response, append that to the response
@@ -104,13 +108,14 @@ namespace ShipIt.Controllers
             // If warehouse has insufficient stock, it will throw errors instead.
 
             //return response + with messaged stock removed successfully?
+
             
-            return Ok(new OutboundOrderResponse()
+            return new OutboundOrderResponse()
             {
                     WarehouseId = request.WarehouseId,
-                    OrderWeight = orderweight;
-                    TrucksRequired = trucksrequired;
-            });
+                    OrderWeight = orderweight,
+                    TrucksRequired = (int) Math.Ceiling(orderweight/2000),
+            };
         }
 
 
