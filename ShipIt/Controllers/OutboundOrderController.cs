@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
  using Microsoft.AspNetCore.Mvc;
@@ -94,11 +94,28 @@ namespace ShipIt.Controllers
                 // outputs errors
             }
 
+            //weight of goods
+            //total trucks needed
+            //create response, append that to the response
+
+
             _stockRepository.RemoveStock(request.WarehouseId, lineItems); 
             // remove amount of stock from the warehouse that is given in request Order.
             // If warehouse has insufficient stock, it will throw errors instead.
 
+            //return response + with messaged stock removed successfully?
             
+            return Ok(new OutboundOrderResponse()
+            {
+                    WarehouseId = request.WarehouseId,
+                    OrderWeight = orderweight;
+                    TrucksRequired = trucksrequired;
+            });
         }
+
+
     }
 }
+
+
+

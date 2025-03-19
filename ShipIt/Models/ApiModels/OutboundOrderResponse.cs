@@ -7,17 +7,18 @@ using System.Web;
 
 namespace ShipIt.Models.ApiModels
 {
-    public class OutboundOrderRequestModel
+    public class OutboundOrderResponse
     {
         public int WarehouseId { get; set; }
-        public IEnumerable<OrderLine> OrderLines { get; set; }
+        
+        public float OrderWeight { get; set; }
 
-        public override String ToString()
+        public int TrucksRequired { get; set; }
+        
+        public override string ToString()
         {
-            return new StringBuilder()
-                .AppendFormat("warehouseId: {0}, ", WarehouseId)
-                .AppendFormat("orderLines: {0}", OrderLines)
-                .ToString();
+            return $"Response: {WarehouseId} {OrderWeight} {TrucksRequired}";
         }
+
     }
 }
