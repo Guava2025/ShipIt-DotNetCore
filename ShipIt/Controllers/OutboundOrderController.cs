@@ -21,9 +21,9 @@ namespace ShipIt.Controllers
             _stockRepository = stockRepository;
             _productRepository = productRepository;
         }
-
+        
         [HttpPost("")]
-        public void Post([FromBody] OutboundOrderRequestModel request)
+        public OutboundOrderResponse Post([FromBody] OutboundOrderRequestModel request)
         {
             Log.Info(String.Format("Processing outbound order: {0}", request));
 
@@ -45,15 +45,15 @@ namespace ShipIt.Controllers
             var errors = new List<string>();
 
             foreach (var orderLine in request.OrderLines)
-            {
+            {       //need modifcations - checks incorrect. Should this check DB or throw different error? 
                 if (!products.ContainsKey(orderLine.gtin))
                 {
                     errors.Add(string.Format("Unknown product gtin: {0}", orderLine.gtin));
                 }
                 else
                 {
-                    var product = products[orderLine.gtin];
-                    lineItems.Add(new StockAlteration(product.Id, orderLine.quantity));
+                    var product = products[orderLine.gtin]; //comes from request.OrderLine
+                    lineItems.Add(new StockAlteration(product.Id, orderLine.quantity)); //comes from request.OrderLine
                     productIds.Add(product.Id);
                 }
             }
@@ -65,22 +65,22 @@ namespace ShipIt.Controllers
 
             var stock = _stockRepository.GetStockByWarehouseAndProductIds(request.WarehouseId, productIds);
 
-            var orderLines = request.OrderLines.ToList();
-            errors = new List<string>();
+            var orderLines = request.OrderLines.ToList(); //duplicate?
+            errors = new List<string>(); //overwriting previous error var
 
             for (int i = 0; i < lineItems.Count; i++)
             {
-                var lineItem = lineItems[i];
-                var orderLine = orderLines[i];
+                var lineItem = lineItems[i]; // list of stock alteration 
+                var orderLine = orderLines[i];  
 
-                if (!stock.ContainsKey(lineItem.ProductId))
+                if (!stock.ContainsKey(lineItem.ProductId)) //if stock (that is being altered) is not in warehouse
                 {
                     errors.Add(string.Format("Product: {0}, no stock held", orderLine.gtin));
                     continue;
                 }
 
-                var item = stock[lineItem.ProductId];
-                if (lineItem.Quantity > item.held)
+                var item = stock[lineItem.ProductId]; //list of product IDs from warehouse stock that are stock alterations
+                if (lineItem.Quantity > item.held) 
                 {
                     errors.Add(
                         string.Format("Product: {0}, stock held: {1}, stock to remove: {2}", orderLine.gtin, item.held,
@@ -90,10 +90,15 @@ namespace ShipIt.Controllers
 
             if (errors.Count > 0)
             {
-                throw new InsufficientStockException(string.Join("; ", errors));
+                throw new InsufficientStockException(string.Join("; ", errors)); 
+                // outputs errors
             }
 
-            _stockRepository.RemoveStock(request.WarehouseId, lineItems);
+            _stockRepository.RemoveStock(request.WarehouseId, lineItems); 
+            // remove amount of stock from the warehouse that is given in request Order.
+            // If warehouse has insufficient stock, it will throw errors instead.
+
+            
         }
     }
 }
