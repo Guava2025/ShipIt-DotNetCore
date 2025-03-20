@@ -32,31 +32,25 @@ namespace ShipIt.Controllers
         [HttpGet("{warehouseId}")]
         public InboundOrderResponse Get([FromRoute] int warehouseId)
         {
-            // Log.Info("orderIn for warehouseId: " + warehouseId);
-            Console.WriteLine("orderIn for warehouseId: " + warehouseId);
+            Log.Info("orderIn for warehouseId: " + warehouseId);
 
             var operationsManager = new Employee(_employeeRepository.GetOperationsManager(warehouseId));
 
             Log.Debug(String.Format("Found operations manager: {0}", operationsManager));
 
-            var allStock = _stockRepository.GetStockByWarehouseId(warehouseId); //gets all stock from warehouse
-
-
-
+            var allStock = _stockRepository.GetStockProductCompanyByWarehouseId(warehouseId); 
 
             Dictionary<Company, List<InboundOrderLine>> orderlinesByCompany = new Dictionary<Company, List<InboundOrderLine>>();
-            //Key = Company, Value Orders
 
             foreach (var stock in allStock)
             {
-                Product product = new Product(_productRepository.GetProductById(stock.ProductId)); //creates new prod object
-                if(stock.held < product.LowerThreshold && !product.Discontinued) // so if stock needs topping up
+                if(stock.StockDataModel.held < stock.ProductDataModel.LowerThreshold && !Convert.ToBoolean(stock.ProductDataModel.Discontinued)) // so if stock needs topping up
                 {
-                    Company company = new Company(_companyRepository.GetCompany(product.Gcp));
+                    Company company = new Company(stock.CompanyDataModel);
+              
+                    var orderQuantity = Math.Max(stock.ProductDataModel.LowerThreshold * 3 - stock.StockDataModel.held, stock.ProductDataModel.MinimumOrderQuantity);
 
-                    var orderQuantity = Math.Max(product.LowerThreshold * 3 - stock.held, product.MinimumOrderQuantity);
-
-                    if (!orderlinesByCompany.ContainsKey(company)) //add companies and orders to dictionary
+                    if (!orderlinesByCompany.ContainsKey(company)) 
                     {
                         orderlinesByCompany.Add(company, new List<InboundOrderLine>());
                     }
@@ -64,8 +58,8 @@ namespace ShipIt.Controllers
                     orderlinesByCompany[company].Add( 
                         new InboundOrderLine()
                         {
-                            gtin = product.Gtin,
-                            name = product.Name,
+                            gtin = stock.ProductDataModel.Gtin,
+                            name = company.Name,
                             quantity = orderQuantity
                         });
                 }
@@ -75,8 +69,8 @@ namespace ShipIt.Controllers
 
             var orderSegments = orderlinesByCompany.Select(ol => new OrderSegment()
             {
-                OrderLines = ol.Value, //gtin, product name, quant
-                Company = ol.Key //company info
+                OrderLines = ol.Value, 
+                Company = ol.Key 
             });
 
             Log.Info("Constructed inbound order");
