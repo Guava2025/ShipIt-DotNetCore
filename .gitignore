@@ -2,3 +2,6 @@
 **/.env
 bin
 obj
+*.sql
+*.swp
+ShipIt/ShipIt.sln

@@ -40,12 +40,6 @@ namespace ShipIt.Controllers
             Log.Debug(String.Format("Found operations manager: {0}", operationsManager));
 
             var allStock = _stockRepository.GetStockByWarehouseId(warehouseId); //gets all stock from warehouse
-            //tables needed: 
-
-            // stock table: stockproduct id (w_id, hld, p_id)
-            // product table: product id(p_id, gtin_cd, gtin_nm, gcp_cd)
-            // company table: gcp, gln_nm, gln_addr_02, gln_addr_03, gln_addr_04, gln_addr_postalcode, gln_addr_city, contact_tel, contact_mail
-
 
 
 

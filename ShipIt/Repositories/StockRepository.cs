@@ -49,6 +49,36 @@ namespace ShipIt.Repositories
             }
         }
 
+            // stock table: stockproduct id (w_id, hld, p_id)
+            // product table: product id(p_id, gtin_cd, gtin_nm, gcp_cd)
+            // company table: gcp, gln_nm, gln_addr_02, gln_addr_03, gln_addr_04, gln_addr_postalcode, gln_addr_city, contact_tel, contact_mail
+// SELECT stock.w_id, stock.hld, stock.p_id, product.p_id, product.gtin_cd, product.gtin_nm, product.gcp_cd,
+// company.gcp_cd, company.gln_nm, company.gln_addr_02,company.gln_addr_03, company.gln_addr_04, company.gln_addr_postalcode,
+// company.gln_addr_city, company.contact_tel, company.contact_mail
+// 	FROM public.stock AS stock
+// 	INNER JOIN public.gtin AS product
+// 		ON product.p_id = stock.p_id
+// 	INNER JOIN public.gcp AS company
+// 		ON product.gcp_cd = company.gcp_cd
+// WHERE w_id = 3
+
+
+        public IEnumerable<StockDataModel> GetStockProductCompanyByWarehouseId(int id)
+        {
+            string sqlStockproduct = "SELECT p_id, hld, w_id FROM stock WHERE w_id = @w_id";
+            string sqlProduct = "";
+            var parameter = new NpgsqlParameter("@w_id", id);
+            string noProductWithIdErrorMessage = string.Format("No stock found with w_id: {0}", id);
+            try
+            {
+                return base.RunGetQuery(sql, reader => new StockDataModel(reader), noProductWithIdErrorMessage, parameter).ToList();
+            }
+            catch (NoSuchEntityException)
+            {
+                return new List<StockDataModel>();
+            }
+        }
+
         public Dictionary<int, StockDataModel> GetStockByWarehouseAndProductIds(int warehouseId, List<int> productIds)
         {
             string sql = string.Format("SELECT p_id, hld, w_id FROM stock WHERE w_id = @w_id AND p_id IN ({0})",
