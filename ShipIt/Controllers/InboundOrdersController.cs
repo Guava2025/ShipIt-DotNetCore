@@ -14,6 +14,8 @@ namespace ShipIt.Controllers
     {
         private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()?.DeclaringType);
 
+
+
         private readonly IEmployeeRepository _employeeRepository;
         private readonly ICompanyRepository _companyRepository;
         private readonly IProductRepository _productRepository;
@@ -36,19 +38,19 @@ namespace ShipIt.Controllers
 
             Log.Debug(String.Format("Found operations manager: {0}", operationsManager));
 
-            var allStock = _stockRepository.GetStockByWarehouseId(warehouseId);
+            var allStock = _stockRepository.GetStockProductCompanyByWarehouseId(warehouseId); 
 
             Dictionary<Company, List<InboundOrderLine>> orderlinesByCompany = new Dictionary<Company, List<InboundOrderLine>>();
+
             foreach (var stock in allStock)
             {
-                Product product = new Product(_productRepository.GetProductById(stock.ProductId));
-                if(stock.held < product.LowerThreshold && !product.Discontinued)
+                if(stock.StockDataModel.held < stock.ProductDataModel.LowerThreshold && !Convert.ToBoolean(stock.ProductDataModel.Discontinued)) // so if stock needs topping up
                 {
-                    Company company = new Company(_companyRepository.GetCompany(product.Gcp));
+                    Company company = new Company(stock.CompanyDataModel);
+              
+                    var orderQuantity = Math.Max(stock.ProductDataModel.LowerThreshold * 3 - stock.StockDataModel.held, stock.ProductDataModel.MinimumOrderQuantity);
 
-                    var orderQuantity = Math.Max(product.LowerThreshold * 3 - stock.held, product.MinimumOrderQuantity);
-
-                    if (!orderlinesByCompany.ContainsKey(company))
+                    if (!orderlinesByCompany.ContainsKey(company)) 
                     {
                         orderlinesByCompany.Add(company, new List<InboundOrderLine>());
                     }
@@ -56,8 +58,8 @@ namespace ShipIt.Controllers
                     orderlinesByCompany[company].Add( 
                         new InboundOrderLine()
                         {
-                            gtin = product.Gtin,
-                            name = product.Name,
+                            gtin = stock.ProductDataModel.Gtin,
+                            name = company.Name,
                             quantity = orderQuantity
                         });
                 }
@@ -67,8 +69,8 @@ namespace ShipIt.Controllers
 
             var orderSegments = orderlinesByCompany.Select(ol => new OrderSegment()
             {
-                OrderLines = ol.Value,
-                Company = ol.Key
+                OrderLines = ol.Value, 
+                Company = ol.Key 
             });
 
             Log.Info("Constructed inbound order");

@@ -14,6 +14,7 @@ namespace ShipIt.Repositories
         int GetTrackedItemsCount();
         int GetStockHeldSum();
         IEnumerable<StockDataModel> GetStockByWarehouseId(int id);
+        IEnumerable<StockProductCompany> GetStockProductCompanyByWarehouseId(int id);
         Dictionary<int, StockDataModel> GetStockByWarehouseAndProductIds(int warehouseId, List<int> productIds);
         void RemoveStock(int warehouseId, List<StockAlteration> lineItems);
         void AddStock(int warehouseId, List<StockAlteration> lineItems);
@@ -46,6 +47,23 @@ namespace ShipIt.Repositories
             catch (NoSuchEntityException)
             {
                 return new List<StockDataModel>();
+            }
+        }
+
+
+        public IEnumerable<StockProductCompany> GetStockProductCompanyByWarehouseId(int id)
+        {
+            string sql ="SELECT * FROM gtin INNER JOIN stock on gtin.p_id = stock.p_id INNER JOIN gcp on gtin.gcp_cd = gcp.gcp_cd WHERE w_id = @w_id;";
+
+            var parameter = new NpgsqlParameter("@w_id", id);
+            string noProductWithIdErrorMessage = string.Format("No stock found with w_id: {0}", id);
+            try
+            {
+                return base.RunGetQuery(sql, reader => new StockProductCompany(reader), noProductWithIdErrorMessage, parameter).ToList();
+            }
+            catch (NoSuchEntityException)
+            {
+                return new List<StockProductCompany>();
             }
         }
 

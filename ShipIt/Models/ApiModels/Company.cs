@@ -29,9 +29,23 @@ namespace ShipIt.Models.ApiModels
             Mail = dataModel.Mail;
         }
 
-        //Empty constructor needed for Xml serialization
-        public Company()
+        public Company(string Gcp, string Name, string Addr2, string Addr3, string Addr4,
+        string PostalCode, string City, string Tel, string Mail)
         {
+            this.Gcp = Gcp;
+            this.Name = Name;
+            this.Addr2 = Addr2;
+            this.Addr3 = Addr3;
+            this.Addr4 = Addr4;
+            this.PostalCode = PostalCode;
+            this.City = City;
+            this.Tel = Tel;
+            this.Mail = Mail;
+        }
+        //Empty constructor needed for Xml serialization
+        public Company(string gcp)
+        {
+            Gcp = gcp;
         }
 
         public override bool Equals(object obj)
